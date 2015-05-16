@@ -5,13 +5,10 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
-import org.apache.zookeeper.ZooKeeper;
 
 /**
  * 1、TCP链接自动重连
  * 2、支持集群
- * 3、异常块需要加日志（done）
- * 4、server module（done）
  */
 public class PeriodWatcher implements Watcher {
 
@@ -25,8 +22,7 @@ public class PeriodWatcher implements Watcher {
 
         try {
             if (eventType == EventType.NodeDataChanged) {
-                ZooKeeper zk = PeriodConnection.zk;
-                byte[] newValue = zk.getData(path, true, null);
+                byte[] newValue = PeriodConnection.getZk().getData(path, true, null);
                 PeriodClientDataPool.add(key, new String(newValue));
             }
 

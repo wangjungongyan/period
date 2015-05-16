@@ -8,8 +8,6 @@ public class PeriodTool {
     public static String convertKey2Path(String originKey) {
         String[] splitedKeys = originKey.split("\\.");
 
-        System.out.println(splitedKeys.length);
-
         StringBuffer finalKey = new StringBuffer();
 
         for (String splitedKey : splitedKeys) {

@@ -19,7 +19,7 @@ public class PeriodServerUtil {
         int version = -1;
 
         try {
-            PeriodConnection.zk.setData(path, newDataBytes, version);
+            PeriodConnection.getZk().setData(path, newDataBytes, version);
         } catch (Exception e) {
             LOGGER.error("update new data '" + newData + "' to path '" + path + "' fail.", e);
             return false;
@@ -34,7 +34,7 @@ public class PeriodServerUtil {
         int version = -1;
 
         try {
-            PeriodConnection.zk.delete(path, version);
+            PeriodConnection.getZk().delete(path, version);
         } catch (Exception e) {
             LOGGER.error("delete path '" + path + "' fail.", e);
             return false;
@@ -64,7 +64,7 @@ public class PeriodServerUtil {
         String path = PeriodTool.convertKey2Path(key);
 
         try {
-            PeriodConnection.zk.create(path, dataBytes, null, mode);
+            PeriodConnection.getZk().create(path, dataBytes, null, mode);
         } catch (Exception e) {
             LOGGER.error("create new path'" + path + "',and set data to '" + data + "' fail.", e);
             return false;

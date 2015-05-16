@@ -7,8 +7,8 @@ public class PeriodClientUtil {
     //        return originalValue == null ? 0 : new Integer(originalValue.toString()).intValue();
     //    }
 
-    public static String getProperty2String(String key) {
-        return (String) PeriodClientDataPool.get(key);
+    public static Object getProperty(String key) {
+        return PeriodClientDataPool.get(key);
     }
 
     //    public static boolean getProperty2Boolean(String key) {

@@ -50,7 +50,7 @@ public class PeriodPropertyConfigurer implements BeanFactoryPostProcessor {
 
             String propertyName = propertyValue.getName();
 
-            Object zkData = "zkdata";
+            Object zkData = PeriodClientUtil.getProperty(propertyName);
 
             if (zkData == null) {
                 throw new RuntimeException(

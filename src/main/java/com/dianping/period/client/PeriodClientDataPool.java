@@ -29,7 +29,7 @@ public class PeriodClientDataPool {
         if (cacheData == null) {
             byte[] pathDataFromZk = null;
             try {
-                pathDataFromZk = PeriodConnection.zk.getData(path, true, null);
+                pathDataFromZk = PeriodConnection.getZk().getData(path, true, null);
             } catch (Exception e) {
                 LOGGER.error("Get data of path '" + path + "' fail.", e);
                 return null;
