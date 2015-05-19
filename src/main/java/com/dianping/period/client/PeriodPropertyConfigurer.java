@@ -1,6 +1,5 @@
 package com.dianping.period.client;
 
-import jodd.bean.BeanUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
@@ -48,20 +47,28 @@ public class PeriodPropertyConfigurer implements BeanFactoryPostProcessor {
                 continue;
             }
 
+            TypedStringValue dynamicProperty = (TypedStringValue) propertyValue.getValue();
+
+
+
+            Object zkData = PeriodClientUtil.getProperty(
+                    dynamicProperty.getValue().substring(2, dynamicProperty.getValue().length() - 1));
+
+            dynamicProperty.setValue((String)zkData);
+            /*
             String propertyName = propertyValue.getName();
 
-            Object zkData = PeriodClientUtil.getProperty(propertyName);
-
-            if (zkData == null) {
-                throw new RuntimeException(
-                        "Init bean '" + beanName + "' fail. Because property '" + propertyName
-                        + "' must be set a not null value."
-                );
-            }
+//            if (zkData == null) {
+            //                throw new RuntimeException(
+            //                        "Init bean '" + beanName + "' fail. Because property '" + propertyName
+            //                        + "' must be set a not null value."
+            //                );
+            //            }
 
             Object beanObject = beanFactory.getBean(beanName);
 
             BeanUtil.setProperty(beanObject, propertyName, zkData);
+            */
         }
     }
 
