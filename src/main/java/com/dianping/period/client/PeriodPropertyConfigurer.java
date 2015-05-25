@@ -55,20 +55,6 @@ public class PeriodPropertyConfigurer implements BeanFactoryPostProcessor {
                     dynamicProperty.getValue().substring(2, dynamicProperty.getValue().length() - 1));
 
             dynamicProperty.setValue((String)zkData);
-            /*
-            String propertyName = propertyValue.getName();
-
-//            if (zkData == null) {
-            //                throw new RuntimeException(
-            //                        "Init bean '" + beanName + "' fail. Because property '" + propertyName
-            //                        + "' must be set a not null value."
-            //                );
-            //            }
-
-            Object beanObject = beanFactory.getBean(beanName);
-
-            BeanUtil.setProperty(beanObject, propertyName, zkData);
-            */
         }
     }
 

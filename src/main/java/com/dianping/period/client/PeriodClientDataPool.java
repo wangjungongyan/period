@@ -3,8 +3,8 @@ package com.dianping.period.client;
 import com.dianping.period.common.PeriodConnection;
 import com.dianping.period.common.PeriodEnv;
 import com.dianping.period.common.PeriodTool;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.Logger;
-import org.apache.zookeeper.ZooKeeper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,8 @@ public class PeriodClientDataPool {
         if (cacheData == null) {
             byte[] pathDataFromZk = null;
             try {
-                pathDataFromZk = PeriodConnection.getZk(env).getData(path, true, null);
+                pathDataFromZk = PeriodConnection.getClient(env).getData().usingWatcher(new PeriodWatcher(env)).forPath(
+                        path);
             } catch (Exception e) {
                 LOGGER.error("Get data of path '" + path + "' fail.", e);
                 return null;
@@ -70,12 +71,12 @@ public class PeriodClientDataPool {
 
         String fatherPath = PeriodTool.convertKey2Path(fatherKey);
 
-        ZooKeeper zk = PeriodConnection.getZk(env);
+        CuratorFramework client = PeriodConnection.getClient(env);
 
         try {
-            zk.getData(fatherPath, true, null);
+            client.getData().usingWatcher(new PeriodWatcher(env)).forPath(fatherKey);
 
-            List<String> childrenkeys = zk.getChildren(fatherPath, true);
+            List<String> childrenkeys = client.getChildren().usingWatcher(new PeriodWatcher(env)).forPath(fatherKey);
 
             if (childrenkeys == null || childrenkeys.size() == 0) return childrenData;
 
@@ -86,7 +87,7 @@ public class PeriodClientDataPool {
                 Object cacheData = pool.get(env + "_" + PeriodTool.convertPath2Key(childPath));
 
                 if (cacheData == null) {
-                    byte[] childData = zk.getData(childPath, true, null);
+                    byte[] childData = client.getData().usingWatcher(new PeriodWatcher(env)).forPath(childPath);
                     childrenData.add(new String(childData));
                     add(childKey, new String(childData), env);
                     continue;

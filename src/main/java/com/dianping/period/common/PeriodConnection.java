@@ -1,30 +1,26 @@
 package com.dianping.period.common;
 
-import com.dianping.period.client.PeriodWatcher;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.zookeeper.ZooKeeper;
 
-import java.io.IOException;
 import java.util.*;
 
 public class PeriodConnection {
 
     private static String ZK_CLUSTER_PATH = "/data/period/zk/zkCluster.properties";
 
-    private static Map<String, ZooKeeper> envZks = initZksOfDifferentEnv();
+    private static Map<String, CuratorFramework> zkClients = initZksOfDifferentEnv();
 
-    public static ZooKeeper getZk(String env) {
-        return envZks.get(env);
+    public static CuratorFramework getClient(String env) {
+        return zkClients.get(env);
     }
 
-    public static ZooKeeper getZk() {
-        return envZks.get(PeriodEnv.getCurrentEnv());
+    public static CuratorFramework getClient() {
+        return zkClients.get(PeriodEnv.getCurrentEnv());
     }
 
-    private static Map<String, ZooKeeper> initZksOfDifferentEnv() {
-        Map<String, ZooKeeper> envZks = new HashMap<String, ZooKeeper>();
+    private static Map<String, CuratorFramework> initZksOfDifferentEnv() {
 
         Map<String, CuratorFramework> zkClients = new HashMap<String, CuratorFramework>();
 
@@ -35,28 +31,21 @@ public class PeriodConnection {
         while (envs.hasNext()) {
             String env = (String) envs.next();
             String cluster = zkClusters.get(env);
-            try {
-                ZooKeeper zk = new ZooKeeper(cluster, 5000, new PeriodWatcher(env));
-                envZks.put(env, zk);
-            } catch (IOException e) {
-                throw new RuntimeException("Instance ZooKeeper Object fail." + e);
-            }
 
             CuratorFramework client = CuratorFrameworkFactory.newClient(
                     cluster,
                     5000,
                     3000,
                     new ExponentialBackoffRetry(1000, 3)
+
             );
-            
+
             client.start();
 
-            zkClients.put(env,client);
+            zkClients.put(env, client);
         }
 
-
-
-        return envZks;
+        return zkClients;
 
     }
 

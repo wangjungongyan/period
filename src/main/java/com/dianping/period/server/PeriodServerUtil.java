@@ -23,7 +23,7 @@ public class PeriodServerUtil {
         int version = -1;
 
         try {
-            PeriodConnection.getZk(env).setData(path, newDataBytes, version);
+            PeriodConnection.getClient(env).setData().withVersion(version).forPath(path, newDataBytes);
         } catch (Exception e) {
             LOGGER.error("update new data '" + newData + "' to path '" + path + "' fail.", e);
             return false;
@@ -40,7 +40,7 @@ public class PeriodServerUtil {
         int version = -1;
 
         try {
-            PeriodConnection.getZk(env).delete(path, version);
+            PeriodConnection.getClient(env).delete().withVersion(version).forPath(path);
         } catch (Exception e) {
             LOGGER.error("delete path '" + path + "' fail.", e);
             return false;
@@ -68,12 +68,13 @@ public class PeriodServerUtil {
     private static boolean createNode(String key, String data, CreateMode mode, String env) {
 
         PeriodEnv.isSupportedEnv(env);
-        
+
         byte dataBytes[] = (data != null) ? data.getBytes() : null;
         String path = PeriodTool.convertKey2Path(key);
 
         try {
-            PeriodConnection.getZk(env).create(path, dataBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, mode);
+            PeriodConnection.getClient(env).create().withMode(mode).withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE).forPath(path,
+                                                                                                                 dataBytes);
         } catch (Exception e) {
             LOGGER.error("create new path'" + path + "',and set data to '" + data + "' fail.", e);
             return false;

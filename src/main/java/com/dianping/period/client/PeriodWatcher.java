@@ -2,17 +2,14 @@ package com.dianping.period.client;
 
 import com.dianping.period.common.PeriodConnection;
 import com.dianping.period.common.PeriodTool;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
-import org.apache.zookeeper.ZooKeeper;
 
 import java.util.List;
 
-/**
- * 1、TCP链接自动重连
- */
 public class PeriodWatcher implements Watcher {
 
     private static final Logger LOGGER = Logger.getLogger(PeriodWatcher.class);
@@ -35,10 +32,11 @@ public class PeriodWatcher implements Watcher {
             }
 
             String key = PeriodTool.convertPath2Key(path);
-            ZooKeeper zk = PeriodConnection.getZk(env);
+
+            CuratorFramework client = PeriodConnection.getClient(env);
 
             if (eventType == EventType.NodeDataChanged) {
-                byte[] newValue = zk.getData(path, true, null);
+                byte[] newValue = client.getData().usingWatcher(new PeriodWatcher(env)).forPath(path);
                 PeriodClientDataPool.add(key, new String(newValue), env);
             }
 
@@ -47,11 +45,12 @@ public class PeriodWatcher implements Watcher {
             }
 
             if (eventType == EventType.NodeChildrenChanged) {
-                List<String> children = zk.getChildren(path, true);
+
+                List<String> children = client.getChildren().usingWatcher(new PeriodWatcher(env)).forPath(path);
 
                 for (String child : children) {
                     String childPath = path + "/" + child;
-                    byte[] childData = zk.getData(childPath, true, null);
+                    byte[] childData = client.getData().usingWatcher(new PeriodWatcher(env)).forPath(childPath);
                     PeriodClientDataPool.add(PeriodTool.convertPath2Key(childPath), new String(childData), env);
                 }
             }
