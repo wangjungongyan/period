@@ -10,7 +10,7 @@
 	<version>0.0.4-SNAPSHOT</version>
 
 	<properties>
-		<zookeeper.version>3.4.5</zookeeper.version>
+		<zookeeper.version>3.4.6</zookeeper.version>
 		<java.src.version>1.6</java.src.version>
 		<java.target.version>1.6</java.target.version>
 		<spring.version>2.5.6</spring.version>
@@ -68,6 +68,12 @@
             <groupId>org.jodd</groupId>
             <artifactId>jodd-bean</artifactId>
             <version>3.6.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>2.5.0</version>
         </dependency>
 
     </dependencies>

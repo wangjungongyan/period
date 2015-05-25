@@ -1,9 +1,11 @@
 package com.dianping.period.server;
 
 import com.dianping.period.common.PeriodConnection;
+import com.dianping.period.common.PeriodEnv;
 import com.dianping.period.common.PeriodTool;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs;
 
 /**
  * Created by vali on 15-5-14.
@@ -12,14 +14,16 @@ public class PeriodServerUtil {
 
     private static final Logger LOGGER = Logger.getLogger(PeriodServerUtil.class);
 
-    public static boolean updateNode(String key, String newData) {
+    public static boolean updateNode(String key, String newData, String env) {
+
+        PeriodEnv.isSupportedEnv(env);
 
         byte newDataBytes[] = (newData != null) ? newData.getBytes() : null;
         String path = PeriodTool.convertKey2Path(key);
         int version = -1;
 
         try {
-            PeriodConnection.getZk().setData(path, newDataBytes, version);
+            PeriodConnection.getZk(env).setData(path, newDataBytes, version);
         } catch (Exception e) {
             LOGGER.error("update new data '" + newData + "' to path '" + path + "' fail.", e);
             return false;
@@ -28,13 +32,15 @@ public class PeriodServerUtil {
         return true;
     }
 
-    public static boolean deleteNode(String key) {
+    public static boolean deleteNode(String key, String env) {
+
+        PeriodEnv.isSupportedEnv(env);
 
         String path = PeriodTool.convertKey2Path(key);
         int version = -1;
 
         try {
-            PeriodConnection.getZk().delete(path, version);
+            PeriodConnection.getZk(env).delete(path, version);
         } catch (Exception e) {
             LOGGER.error("delete path '" + path + "' fail.", e);
             return false;
@@ -43,28 +49,31 @@ public class PeriodServerUtil {
         return true;
     }
 
-    public static boolean createPersistentNode(String key, String data) {
-        return createNode(key, data, CreateMode.PERSISTENT);
+    public static boolean createPersistentNode(String key, String data, String env) {
+        return createNode(key, data, CreateMode.PERSISTENT, env);
     }
 
-    public static boolean createPersistentSequentialNode(String key, String data) {
-        return createNode(key, data, CreateMode.PERSISTENT_SEQUENTIAL);
+    public static boolean createPersistentSequentialNode(String key, String data, String env) {
+        return createNode(key, data, CreateMode.PERSISTENT_SEQUENTIAL, env);
     }
 
-    public static boolean createEphemeralNode(String key, String data) {
-        return createNode(key, data, CreateMode.EPHEMERAL);
+    public static boolean createEphemeralNode(String key, String data, String env) {
+        return createNode(key, data, CreateMode.EPHEMERAL, env);
     }
 
-    public static boolean createEphemeralSequentialNode(String key, String data) {
-        return createNode(key, data, CreateMode.EPHEMERAL_SEQUENTIAL);
+    public static boolean createEphemeralSequentialNode(String key, String data, String env) {
+        return createNode(key, data, CreateMode.EPHEMERAL_SEQUENTIAL, env);
     }
 
-    private static boolean createNode(String key, String data, CreateMode mode) {
+    private static boolean createNode(String key, String data, CreateMode mode, String env) {
+
+        PeriodEnv.isSupportedEnv(env);
+        
         byte dataBytes[] = (data != null) ? data.getBytes() : null;
         String path = PeriodTool.convertKey2Path(key);
 
         try {
-            PeriodConnection.getZk().create(path, dataBytes, null, mode);
+            PeriodConnection.getZk(env).create(path, dataBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, mode);
         } catch (Exception e) {
             LOGGER.error("create new path'" + path + "',and set data to '" + data + "' fail.", e);
             return false;

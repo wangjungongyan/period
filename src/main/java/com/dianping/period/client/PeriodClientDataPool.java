@@ -1,9 +1,13 @@
 package com.dianping.period.client;
 
 import com.dianping.period.common.PeriodConnection;
+import com.dianping.period.common.PeriodEnv;
 import com.dianping.period.common.PeriodTool;
 import org.apache.log4j.Logger;
+import org.apache.zookeeper.ZooKeeper;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PeriodClientDataPool {
@@ -13,33 +17,90 @@ public class PeriodClientDataPool {
     private static final Logger LOGGER = Logger.getLogger(PeriodClientDataPool.class);
 
     public static void add(String key, Object value) {
-        pool.put(key, value);
+        add(key, value, PeriodEnv.getCurrentEnv());
+    }
+
+    public static void add(String key, Object value, String env) {
+        pool.put(env + "_" + key, value);
     }
 
     public static void remove(String key) {
-        pool.remove(key);
+        remove(key, PeriodEnv.getCurrentEnv());
+    }
+
+    public static void remove(String key, String env) {
+        pool.remove(env + "_" + key);
     }
 
     public static Object get(String key) {
+        return get(key, PeriodEnv.getCurrentEnv());
+    }
+
+    public static Object get(String key, String env) {
 
         String path = PeriodTool.convertKey2Path(key);
 
-        Object cacheData = pool.get(key);
+        String cacheKey = env + "_" + key;
+
+        Object cacheData = pool.get(cacheKey);
 
         if (cacheData == null) {
             byte[] pathDataFromZk = null;
             try {
-                pathDataFromZk = PeriodConnection.getZk().getData(path, true, null);
+                pathDataFromZk = PeriodConnection.getZk(env).getData(path, true, null);
             } catch (Exception e) {
                 LOGGER.error("Get data of path '" + path + "' fail.", e);
                 return null;
             }
 
             cacheData = new String(pathDataFromZk);
-            add(key, cacheData);
+            add(key, cacheData, env);
         }
 
         return cacheData;
+    }
+
+    public static List<Object> getChildren(String fatherKey) {
+        return getChildren(fatherKey, PeriodEnv.getCurrentEnv());
+    }
+
+    public static List<Object> getChildren(String fatherKey, String env) {
+
+        List<Object> childrenData = new ArrayList<Object>(5);
+
+        String fatherPath = PeriodTool.convertKey2Path(fatherKey);
+
+        ZooKeeper zk = PeriodConnection.getZk(env);
+
+        try {
+            zk.getData(fatherPath, true, null);
+
+            List<String> childrenkeys = zk.getChildren(fatherPath, true);
+
+            if (childrenkeys == null || childrenkeys.size() == 0) return childrenData;
+
+            for (String childkey : childrenkeys) {
+                String childPath = fatherPath + "/" + childkey;
+                String childKey = PeriodTool.convertPath2Key(childPath);
+
+                Object cacheData = pool.get(env + "_" + PeriodTool.convertPath2Key(childPath));
+
+                if (cacheData == null) {
+                    byte[] childData = zk.getData(childPath, true, null);
+                    childrenData.add(new String(childData));
+                    add(childKey, new String(childData), env);
+                    continue;
+                }
+
+                childrenData.add(cacheData);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("Get data of father path '" + fatherKey + "' fail.", e);
+            return null;
+        }
+
+        return childrenData;
     }
 
 }
