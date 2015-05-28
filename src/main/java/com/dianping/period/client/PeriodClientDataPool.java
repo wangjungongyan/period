@@ -43,11 +43,12 @@ public class PeriodClientDataPool {
         String cacheKey = env + "_" + key;
 
         Object cacheData = pool.get(cacheKey);
+        //Object cacheData = null;
 
         if (cacheData == null) {
             byte[] pathDataFromZk = null;
             try {
-                pathDataFromZk = PeriodConnection.getClient(env).getData().usingWatcher(new PeriodWatcher(env)).forPath(
+                pathDataFromZk = PeriodConnection.getClient(env).getData().watched().forPath(
                         path);
             } catch (Exception e) {
                 LOGGER.error("Get data of path '" + path + "' fail.", e);
@@ -74,9 +75,9 @@ public class PeriodClientDataPool {
         CuratorFramework client = PeriodConnection.getClient(env);
 
         try {
-            client.getData().usingWatcher(new PeriodWatcher(env)).forPath(fatherKey);
+            client.getData().watched().forPath(fatherKey);
 
-            List<String> childrenkeys = client.getChildren().usingWatcher(new PeriodWatcher(env)).forPath(fatherKey);
+            List<String> childrenkeys = client.getChildren().watched().forPath(fatherKey);
 
             if (childrenkeys == null || childrenkeys.size() == 0) return childrenData;
 
@@ -87,7 +88,7 @@ public class PeriodClientDataPool {
                 Object cacheData = pool.get(env + "_" + PeriodTool.convertPath2Key(childPath));
 
                 if (cacheData == null) {
-                    byte[] childData = client.getData().usingWatcher(new PeriodWatcher(env)).forPath(childPath);
+                    byte[] childData = client.getData().watched().forPath(childPath);
                     childrenData.add(new String(childData));
                     add(childKey, new String(childData), env);
                     continue;

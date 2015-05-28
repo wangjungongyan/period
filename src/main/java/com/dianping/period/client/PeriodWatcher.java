@@ -3,14 +3,16 @@ package com.dianping.period.client;
 import com.dianping.period.common.PeriodConnection;
 import com.dianping.period.common.PeriodTool;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.CuratorEvent;
+import org.apache.curator.framework.api.CuratorEventType;
+import org.apache.curator.framework.api.CuratorListener;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
 import java.util.List;
 
-public class PeriodWatcher implements Watcher {
+public class PeriodWatcher implements CuratorListener {
 
     private static final Logger LOGGER = Logger.getLogger(PeriodWatcher.class);
 
@@ -36,8 +38,10 @@ public class PeriodWatcher implements Watcher {
             CuratorFramework client = PeriodConnection.getClient(env);
 
             if (eventType == EventType.NodeDataChanged) {
-                byte[] newValue = client.getData().usingWatcher(new PeriodWatcher(env)).forPath(path);
+                byte[] newValue = PeriodConnection.getClient(env).getData().watched().forPath(
+                        path);
                 PeriodClientDataPool.add(key, new String(newValue), env);
+
             }
 
             if (eventType == EventType.NodeDeleted) {
@@ -46,11 +50,11 @@ public class PeriodWatcher implements Watcher {
 
             if (eventType == EventType.NodeChildrenChanged) {
 
-                List<String> children = client.getChildren().usingWatcher(new PeriodWatcher(env)).forPath(path);
+                List<String> children = client.getChildren().watched().forPath(path);
 
                 for (String child : children) {
                     String childPath = path + "/" + child;
-                    byte[] childData = client.getData().usingWatcher(new PeriodWatcher(env)).forPath(childPath);
+                    byte[] childData = client.getData().watched().forPath(childPath);
                     PeriodClientDataPool.add(PeriodTool.convertPath2Key(childPath), new String(childData), env);
                 }
             }
@@ -61,4 +65,12 @@ public class PeriodWatcher implements Watcher {
 
     }
 
+    @Override public void eventReceived(CuratorFramework curatorFramework, CuratorEvent curatorEvent) throws Exception {
+        if (curatorEvent.getType() == CuratorEventType.WATCHED) {
+            WatchedEvent we = curatorEvent.getWatchedEvent();
+            if (we.getPath() != null) {
+                process(curatorEvent.getWatchedEvent());
+            }
+        }
+    }
 }

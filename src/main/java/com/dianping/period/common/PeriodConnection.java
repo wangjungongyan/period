@@ -1,8 +1,9 @@
 package com.dianping.period.common;
 
+import com.dianping.period.client.PeriodWatcher;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.retry.RetryNTimes;
 
 import java.util.*;
 
@@ -34,13 +35,20 @@ public class PeriodConnection {
 
             CuratorFramework client = CuratorFrameworkFactory.newClient(
                     cluster,
-                    5000,
-                    3000,
-                    new ExponentialBackoffRetry(1000, 3)
-
+                    50000,
+                    30000,
+                    new RetryNTimes(Integer.MAX_VALUE, 1000)
             );
 
+            client.getCuratorListenable().addListener(new PeriodWatcher(env));
+            client.getConnectionStateListenable().addListener(new SessionConnectionStateListener("/period", ""));
             client.start();
+
+            try {
+                client.getZookeeperClient().blockUntilConnectedOrTimedOut();
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Init env '" + env + "' zkclient fail." + e.getMessage());
+            }
 
             zkClients.put(env, client);
         }
