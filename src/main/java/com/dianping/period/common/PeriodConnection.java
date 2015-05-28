@@ -35,7 +35,7 @@ public class PeriodConnection {
 
             CuratorFramework client = CuratorFrameworkFactory.newClient(
                     cluster,
-                    50000,
+                    500,
                     30000,
                     new RetryNTimes(Integer.MAX_VALUE, 1000)
             );
