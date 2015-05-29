@@ -43,7 +43,6 @@ public class PeriodClientDataPool {
         String cacheKey = env + "_" + key;
 
         Object cacheData = pool.get(cacheKey);
-        //Object cacheData = null;
 
         if (cacheData == null) {
             byte[] pathDataFromZk = null;
@@ -75,9 +74,9 @@ public class PeriodClientDataPool {
         CuratorFramework client = PeriodConnection.getClient(env);
 
         try {
-            client.getData().watched().forPath(fatherKey);
+            client.getData().watched().forPath(fatherPath);
 
-            List<String> childrenkeys = client.getChildren().watched().forPath(fatherKey);
+            List<String> childrenkeys = client.getChildren().watched().forPath(fatherPath);
 
             if (childrenkeys == null || childrenkeys.size() == 0) return childrenData;
 
