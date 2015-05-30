@@ -1,8 +1,6 @@
 package com.dianping.period.client;
 
-import com.dianping.period.common.PeriodEnv;
-
-import java.util.List;
+import java.util.Map;
 
 public class PeriodClientUtil {
 
@@ -16,22 +14,19 @@ public class PeriodClientUtil {
     }
 
     public static Object getProperty(String key, String env) {
-        PeriodEnv.isSupportedEnv(env);
         return PeriodClientDataPool.get(key, env);
     }
 
     public static Object getProperty(String key, Object defaultValue, String env) {
-        PeriodEnv.isSupportedEnv(env);
         Object zkData = PeriodClientDataPool.get(key, env);
         return (zkData == null) ? defaultValue : zkData;
     }
 
-    public static List<Object> getChildrenProperties(String fatherKey) {
+    public static Map<String, String> getChildrenProperties(String fatherKey) {
         return PeriodClientDataPool.getChildren(fatherKey);
     }
 
-    public static List<Object> getChildrenProperties(String fatherKey, String env) {
-        PeriodEnv.isSupportedEnv(env);
+    public static Map<String, String> getChildrenProperties(String fatherKey, String env) {
         return PeriodClientDataPool.getChildren(fatherKey, env);
     }
 

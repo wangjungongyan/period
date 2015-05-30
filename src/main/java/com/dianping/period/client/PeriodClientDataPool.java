@@ -6,8 +6,9 @@ import com.dianping.period.common.PeriodTool;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PeriodClientDataPool {
@@ -61,13 +62,13 @@ public class PeriodClientDataPool {
         return cacheData;
     }
 
-    public static List<Object> getChildren(String fatherKey) {
+    public static Map<String, String> getChildren(String fatherKey) {
         return getChildren(fatherKey, PeriodEnv.getCurrentEnv());
     }
 
-    public static List<Object> getChildren(String fatherKey, String env) {
+    public static Map<String, String> getChildren(String fatherKey, String env) {
 
-        List<Object> childrenData = new ArrayList<Object>(5);
+        Map<String, String> childrenData = new HashMap<String, String>();
 
         String fatherPath = PeriodTool.convertKey2Path(fatherKey);
 
@@ -78,7 +79,7 @@ public class PeriodClientDataPool {
 
             List<String> childrenkeys = client.getChildren().watched().forPath(fatherPath);
 
-            if (childrenkeys == null || childrenkeys.size() == 0) return childrenData;
+            if (childrenkeys == null || childrenkeys.size() == 0) return new HashMap<String, String>();
 
             for (String childkey : childrenkeys) {
                 String childPath = fatherPath + "/" + childkey;
@@ -88,12 +89,12 @@ public class PeriodClientDataPool {
 
                 if (cacheData == null) {
                     byte[] childData = client.getData().watched().forPath(childPath);
-                    childrenData.add(new String(childData));
+                    childrenData.put(childKey, new String(childData));
                     add(childKey, new String(childData), env);
                     continue;
                 }
 
-                childrenData.add(cacheData);
+                childrenData.put(childKey, cacheData.toString());
             }
 
         } catch (Exception e) {

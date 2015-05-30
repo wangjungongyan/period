@@ -11,50 +11,63 @@ public class PeriodConnection {
 
     private static String ZK_CLUSTER_PATH = "/data/period/zk/zkCluster.properties";
 
-    private static Map<String, CuratorFramework> zkClients = initZksOfDifferentEnv();
+    private static Map<String, CuratorFramework> zkClients = null;
 
     public static CuratorFramework getClient(String env) {
+        initZksOfDifferentEnv();
+        PeriodEnv.isSupportedEnv(env);
         return zkClients.get(env);
     }
 
     public static CuratorFramework getClient() {
-        return zkClients.get(PeriodEnv.getCurrentEnv());
+        initZksOfDifferentEnv();
+        String env = PeriodEnv.getCurrentEnv();
+        PeriodEnv.isSupportedEnv(env);
+        return zkClients.get(env);
     }
 
-    private static Map<String, CuratorFramework> initZksOfDifferentEnv() {
+    private static void initZksOfDifferentEnv() {
+        if (zkClients == null) {
 
-        Map<String, CuratorFramework> zkClients = new HashMap<String, CuratorFramework>();
+            synchronized (PeriodConnection.class) {
 
-        Map<String, String> zkClusters = getZkClustersConfig();
+                if (zkClients == null) {
+                    Map<String, CuratorFramework> envClients = new HashMap<String, CuratorFramework>();
 
-        Iterator envs = zkClusters.keySet().iterator();
+                    Map<String, String> zkClusters = getZkClustersConfig();
 
-        while (envs.hasNext()) {
-            String env = (String) envs.next();
-            String cluster = zkClusters.get(env);
+                    Iterator envs = zkClusters.keySet().iterator();
 
-            CuratorFramework client = CuratorFrameworkFactory.newClient(
-                    cluster,
-                    500,
-                    30000,
-                    new RetryNTimes(Integer.MAX_VALUE, 1000)
-            );
+                    while (envs.hasNext()) {
+                        String env = (String) envs.next();
+                        String cluster = zkClusters.get(env);
 
-            client.getCuratorListenable().addListener(new PeriodWatcher(env));
-            client.getConnectionStateListenable().addListener(new SessionConnectionStateListener("/period", ""));
-            client.start();
+                        CuratorFramework client = CuratorFrameworkFactory.newClient(
+                                cluster,
+                                500,
+                                30000,
+                                new RetryNTimes(Integer.MAX_VALUE, 1000)
+                        );
 
-            try {
-                client.getZookeeperClient().blockUntilConnectedOrTimedOut();
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Init env '" + env + "' zkclient fail." + e.getMessage());
+                        client.getCuratorListenable().addListener(new PeriodWatcher(env));
+                        client.getConnectionStateListenable().addListener(
+                                new SessionConnectionStateListener("/period", ""));
+                        client.start();
+
+                        try {
+                            client.getZookeeperClient().blockUntilConnectedOrTimedOut();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException("Init env '" + env + "' zkclient fail." + e.getMessage());
+                        }
+
+                        envClients.put(env, client);
+                    }
+
+                    zkClients = envClients;
+
+                }
             }
-
-            zkClients.put(env, client);
         }
-
-        return zkClients;
-
     }
 
     private static Map<String, String> getZkClustersConfig() {
