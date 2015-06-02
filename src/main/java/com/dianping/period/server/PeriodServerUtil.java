@@ -1,7 +1,6 @@
 package com.dianping.period.server;
 
 import com.dianping.period.common.PeriodConnection;
-import com.dianping.period.common.PeriodEnv;
 import com.dianping.period.common.PeriodTool;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
@@ -14,8 +13,6 @@ public class PeriodServerUtil {
     private static final Logger LOGGER = Logger.getLogger(PeriodServerUtil.class);
 
     public static boolean updateNode(String key, String newData, String env) {
-
-        PeriodEnv.isSupportedEnv(env);
 
         byte newDataBytes[] = (newData != null) ? newData.getBytes() : null;
         int version = -1;
@@ -32,8 +29,6 @@ public class PeriodServerUtil {
     }
 
     public static boolean deleteNode(String key, String env) {
-
-        PeriodEnv.isSupportedEnv(env);
 
         int version = -1;
         String fullNodePath = PeriodTool.getFullNodePath(key);
@@ -65,8 +60,6 @@ public class PeriodServerUtil {
     }
 
     private static boolean createNode(String key, String data, CreateMode mode, String env) {
-
-        PeriodEnv.isSupportedEnv(env);
 
         byte dataBytes[] = (data != null) ? data.getBytes() : null;
         String fullNodePath = PeriodTool.getFullNodePath(key);
