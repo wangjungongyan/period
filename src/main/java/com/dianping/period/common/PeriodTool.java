@@ -51,4 +51,11 @@ public class PeriodTool {
         return prop;
     }
 
+    public static String getFullNodePath(String key) {
+        String projectName = key.substring(0, key.indexOf("."));
+        String subNode = key.substring(key.indexOf(".") + 1);
+        String fullNodePath = "/" + projectName + "/" + subNode;
+        return fullNodePath;
+    }
+
 }

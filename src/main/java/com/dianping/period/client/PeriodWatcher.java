@@ -38,14 +38,14 @@ public class PeriodWatcher implements CuratorListener {
             CuratorFramework client = PeriodConnection.getClient(env);
 
             if (eventType == EventType.NodeDataChanged) {
-                byte[] newValue = PeriodConnection.getClient(env).getData().watched().forPath(
+                byte[] newValue = client.getData().watched().forPath(
                         path);
                 PeriodClientDataPool.add(key, new String(newValue), env);
 
             }
 
             if (eventType == EventType.NodeDeleted) {
-                PeriodClientDataPool.remove(key);
+                PeriodClientDataPool.remove(key, env);
             }
 
             if (eventType == EventType.NodeChildrenChanged) {

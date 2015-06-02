@@ -39,7 +39,7 @@ public class PeriodClientDataPool {
 
     public static Object get(String key, String env) {
 
-        String path = PeriodTool.convertKey2Path(key);
+        String fullNodePath = PeriodTool.getFullNodePath(key);
 
         String cacheKey = env + "_" + key;
 
@@ -49,9 +49,9 @@ public class PeriodClientDataPool {
             byte[] pathDataFromZk = null;
             try {
                 pathDataFromZk = PeriodConnection.getClient(env).getData().watched().forPath(
-                        path);
+                        fullNodePath);
             } catch (Exception e) {
-                LOGGER.error("Get data of path '" + path + "' fail.", e);
+                LOGGER.error("Get data of path '" + fullNodePath + "' fail.", e);
                 return null;
             }
 

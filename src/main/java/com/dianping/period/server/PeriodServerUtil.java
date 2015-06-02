@@ -5,7 +5,6 @@ import com.dianping.period.common.PeriodEnv;
 import com.dianping.period.common.PeriodTool;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs;
 
 /**
  * Created by vali on 15-5-14.
@@ -19,13 +18,13 @@ public class PeriodServerUtil {
         PeriodEnv.isSupportedEnv(env);
 
         byte newDataBytes[] = (newData != null) ? newData.getBytes() : null;
-        String path = PeriodTool.convertKey2Path(key);
         int version = -1;
+        String fullNodePath = PeriodTool.getFullNodePath(key);
 
         try {
-            PeriodConnection.getClient(env).setData().withVersion(version).forPath(path, newDataBytes);
+            PeriodConnection.getClient(env).setData().withVersion(version).forPath(fullNodePath, newDataBytes);
         } catch (Exception e) {
-            LOGGER.error("update new data '" + newData + "' to path '" + path + "' fail.", e);
+            LOGGER.error("update new data '" + newData + "' to path '" + fullNodePath + "' fail.", e);
             return false;
         }
 
@@ -36,13 +35,13 @@ public class PeriodServerUtil {
 
         PeriodEnv.isSupportedEnv(env);
 
-        String path = PeriodTool.convertKey2Path(key);
         int version = -1;
+        String fullNodePath = PeriodTool.getFullNodePath(key);
 
         try {
-            PeriodConnection.getClient(env).delete().withVersion(version).forPath(path);
+            PeriodConnection.getClient(env).delete().withVersion(version).forPath(fullNodePath);
         } catch (Exception e) {
-            LOGGER.error("delete path '" + path + "' fail.", e);
+            LOGGER.error("delete path '" + fullNodePath + "' fail.", e);
             return false;
         }
 
@@ -70,13 +69,14 @@ public class PeriodServerUtil {
         PeriodEnv.isSupportedEnv(env);
 
         byte dataBytes[] = (data != null) ? data.getBytes() : null;
-        String path = PeriodTool.convertKey2Path(key);
+        String fullNodePath = PeriodTool.getFullNodePath(key);
 
         try {
-            PeriodConnection.getClient(env).create().withMode(mode).withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE).forPath(path,
-                                                                                                                 dataBytes);
+            PeriodConnection.getClient(env).create().creatingParentsIfNeeded().withMode(mode).forPath(
+                    fullNodePath,
+                    dataBytes);
         } catch (Exception e) {
-            LOGGER.error("create new path'" + path + "',and set data to '" + data + "' fail.", e);
+            LOGGER.error("create new path'" + fullNodePath + "',and set data to '" + data + "' fail.", e);
             return false;
         }
 
