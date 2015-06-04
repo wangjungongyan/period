@@ -70,39 +70,40 @@ public class PeriodClientDataPool {
 
         Map<String, String> childrenData = new HashMap<String, String>();
 
-        String fatherPath = PeriodTool.convertKey2Path(fatherKey);
+        String cacheKey = env + "_" + fatherKey;
 
-        CuratorFramework client = PeriodConnection.getClient(env);
+        Map<String, String> cacheData = (Map<String, String>) (pool.get(cacheKey));
 
-        try {
-            client.getData().watched().forPath(fatherPath);
+        if (cacheData == null) {
 
-            List<String> childrenkeys = client.getChildren().watched().forPath(fatherPath);
+            String fatherPath = PeriodTool.getFullNodePath(fatherKey);
+            CuratorFramework client = PeriodConnection.getClient(env);
 
-            if (childrenkeys == null || childrenkeys.size() == 0) return new HashMap<String, String>();
+            try {
+                client.getData().watched().forPath(fatherPath);
 
-            for (String childkey : childrenkeys) {
-                String childPath = fatherPath + "/" + childkey;
-                String childKey = PeriodTool.convertPath2Key(childPath);
+                List<String> childrenPaths = client.getChildren().forPath(fatherPath);
 
-                Object cacheData = pool.get(env + "_" + PeriodTool.convertPath2Key(childPath));
+                if (childrenPaths == null || childrenPaths.size() == 0) return null;
 
-                if (cacheData == null) {
-                    byte[] childData = client.getData().watched().forPath(childPath);
-                    childrenData.put(childKey, new String(childData));
-                    add(childKey, new String(childData), env);
-                    continue;
+                for (String childPath : childrenPaths) {
+                    String childFullPath = fatherPath + "/" + childPath;
+                    String childFullKey = fatherKey + "." + childPath;
+                    byte[] childData = client.getData().forPath(childFullPath);
+                    childrenData.put(childFullKey, new String(childData));
                 }
 
-                childrenData.put(childKey, cacheData.toString());
-            }
+                add(fatherKey, childrenData, env);
 
-        } catch (Exception e) {
-            LOGGER.error("Get data of father path '" + fatherKey + "' fail.", e);
-            return null;
+                return childrenData;
+
+            } catch (Exception e) {
+                LOGGER.error("Get data of father path '" + fatherKey + "' fail.", e);
+                return null;
+            }
         }
 
-        return childrenData;
+        return cacheData;
     }
 
 }

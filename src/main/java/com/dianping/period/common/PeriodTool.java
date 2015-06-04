@@ -11,6 +11,8 @@ import java.util.Properties;
  */
 public class PeriodTool {
 
+    public static String ROOT_PATH = "/period";
+
     public static String convertKey2Path(String originKey) {
         String[] splitedKeys = originKey.split("\\.");
 
@@ -21,12 +23,22 @@ public class PeriodTool {
             finalKey.append(splitedKey);
         }
 
-        return finalKey.toString();
+        return ROOT_PATH + finalKey.toString();
     }
 
     public static String convertPath2Key(String path) {
+        if (path.startsWith(ROOT_PATH)){
+            String subPath = path.substring(ROOT_PATH.length() + 1);
+            return subPath.replaceAll("/", ".");
+        }
+
         String subPath = path.substring(1);
         return subPath.replaceAll("/", ".");
+    }
+
+    public static void main(String[]dd){
+         String path = "ly-service/child1";
+        System.out.print(convertPath2Key(path));
     }
 
     public static Properties getProperties(String path) {
@@ -52,9 +64,14 @@ public class PeriodTool {
     }
 
     public static String getFullNodePath(String key) {
+
+        if(key.indexOf(".") ==-1){
+            return ROOT_PATH + "/" + key;
+        }
+
         String projectName = key.substring(0, key.indexOf("."));
         String subNode = key.substring(key.indexOf(".") + 1);
-        String fullNodePath = "/" + projectName + "/" + subNode;
+        String fullNodePath = ROOT_PATH + "/" + projectName + "/" + subNode;
         return fullNodePath;
     }
 

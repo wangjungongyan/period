@@ -10,7 +10,9 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PeriodWatcher implements CuratorListener {
 
@@ -35,6 +37,8 @@ public class PeriodWatcher implements CuratorListener {
 
             String key = PeriodTool.convertPath2Key(path);
 
+            System.out.println("eventType:" + eventType + ",path:" + path + ",key:" + key);
+
             CuratorFramework client = PeriodConnection.getClient(env);
 
             if (eventType == EventType.NodeDataChanged) {
@@ -51,12 +55,21 @@ public class PeriodWatcher implements CuratorListener {
             if (eventType == EventType.NodeChildrenChanged) {
 
                 List<String> children = client.getChildren().watched().forPath(path);
+                Map<String, String> childrenData = new HashMap<String, String>();
 
                 for (String child : children) {
                     String childPath = path + "/" + child;
+                    String childFullKey = PeriodTool.convertPath2Key(childPath);
                     byte[] childData = client.getData().watched().forPath(childPath);
-                    PeriodClientDataPool.add(PeriodTool.convertPath2Key(childPath), new String(childData), env);
+
+                    System.out.println("childFullKey:" + childFullKey + ",childPath:" + childPath);
+
+                    childrenData.put(childFullKey, new String(childData));
                 }
+
+                System.out.println("fatherKey:" + PeriodTool.convertPath2Key(path));
+
+                PeriodClientDataPool.add(PeriodTool.convertPath2Key(path), childrenData, env);
             }
 
         } catch (Exception e) {
