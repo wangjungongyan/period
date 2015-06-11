@@ -76,18 +76,24 @@
             <version>2.4.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.5</version>
+        </dependency>
+
     </dependencies>
 
-	<distributionManagement>
-		<repository>
-			<id>Releases</id>
-			<url>http://mvn.leya.com/content/repositories/releases/</url>
-		</repository>
-		<snapshotRepository>
-			<id>Snapshots</id>
-			<url>http://mvn.leya.com/content/repositories/snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
+	<!--<distributionManagement>-->
+		<!--<repository>-->
+			<!--<id>Releases</id>-->
+			<!--<url>http://mvn.leya.com/content/repositories/releases/</url>-->
+		<!--</repository>-->
+		<!--<snapshotRepository>-->
+			<!--<id>Snapshots</id>-->
+			<!--<url>http://mvn.leya.com/content/repositories/snapshots/</url>-->
+		<!--</snapshotRepository>-->
+	<!--</distributionManagement>-->
 
 	<build>
 		<plugins>

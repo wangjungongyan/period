@@ -1,4 +1,6 @@
-package com.dianping.period.common;
+package com.period.common;
+
+import com.alibaba.fastjson.JSON;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +14,8 @@ import java.util.Properties;
 public class PeriodTool {
 
     public static String ROOT_PATH = "/period";
+
+    public static String FATHER = "father";
 
     public static String convertKey2Path(String originKey) {
         String[] splitedKeys = originKey.split("\\.");
@@ -27,7 +31,7 @@ public class PeriodTool {
     }
 
     public static String convertPath2Key(String path) {
-        if (path.startsWith(ROOT_PATH)){
+        if (path.startsWith(ROOT_PATH)) {
             String subPath = path.substring(ROOT_PATH.length() + 1);
             return subPath.replaceAll("/", ".");
         }
@@ -36,8 +40,8 @@ public class PeriodTool {
         return subPath.replaceAll("/", ".");
     }
 
-    public static void main(String[]dd){
-         String path = "ly-service/child1";
+    public static void main(String[] dd) {
+        String path = "ly-service/child1";
         System.out.print(convertPath2Key(path));
     }
 
@@ -65,7 +69,7 @@ public class PeriodTool {
 
     public static String getFullNodePath(String key) {
 
-        if(key.indexOf(".") ==-1){
+        if (key.indexOf(".") == -1) {
             return ROOT_PATH + "/" + key;
         }
 
@@ -73,6 +77,24 @@ public class PeriodTool {
         String subNode = key.substring(key.indexOf(".") + 1);
         String fullNodePath = ROOT_PATH + "/" + projectName + "/" + subNode;
         return fullNodePath;
+    }
+
+    public static PeriodEntity json2PeriodEntity(String jsonBody) {
+
+        if (jsonBody == null || "".equals(jsonBody)) {
+            return null;
+        }
+
+        return JSON.parseObject(jsonBody, PeriodEntity.class);
+    }
+
+    public static String periodEntity2Json(PeriodEntity entity) {
+
+        if (entity == null) {
+            return null;
+        }
+
+        return JSON.toJSONString(entity);
     }
 
 }

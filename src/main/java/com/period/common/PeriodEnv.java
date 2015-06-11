@@ -1,4 +1,4 @@
-package com.dianping.period.common;
+package com.period.common;
 
 import java.util.HashSet;
 import java.util.Properties;

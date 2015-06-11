@@ -1,6 +1,6 @@
-package com.dianping.period.common;
+package com.period.common;
 
-import com.dianping.period.client.PeriodWatcher;
+import com.period.client.PeriodWatcher;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
@@ -20,10 +20,7 @@ public class PeriodConnection {
     }
 
     public static CuratorFramework getClient() {
-        initZksOfDifferentEnv();
-        String env = PeriodEnv.getCurrentEnv();
-        PeriodEnv.isSupportedEnv(env);
-        return zkClients.get(env);
+        return getClient(PeriodEnv.getCurrentEnv());
     }
 
     private static void initZksOfDifferentEnv() {

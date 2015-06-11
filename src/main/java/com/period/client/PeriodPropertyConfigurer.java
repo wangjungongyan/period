@@ -1,5 +1,6 @@
-package com.dianping.period.client;
+package com.period.client;
 
+import com.period.common.PeriodEntity;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
@@ -49,12 +50,15 @@ public class PeriodPropertyConfigurer implements BeanFactoryPostProcessor {
 
             TypedStringValue dynamicProperty = (TypedStringValue) propertyValue.getValue();
 
-
-
-            Object zkData = PeriodClientUtil.getProperty(
+            PeriodEntity localCache = PeriodClientUtil.getProperty(
                     dynamicProperty.getValue().substring(2, dynamicProperty.getValue().length() - 1));
 
-            dynamicProperty.setValue((String)zkData);
+            if (localCache == null) {
+                dynamicProperty.setValue(null);
+                continue;
+            }
+
+            dynamicProperty.setValue(localCache.getValue());
         }
     }
 

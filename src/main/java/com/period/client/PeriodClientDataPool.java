@@ -1,8 +1,9 @@
-package com.dianping.period.client;
+package com.period.client;
 
-import com.dianping.period.common.PeriodConnection;
-import com.dianping.period.common.PeriodEnv;
-import com.dianping.period.common.PeriodTool;
+import com.period.common.PeriodConnection;
+import com.period.common.PeriodEntity;
+import com.period.common.PeriodEnv;
+import com.period.common.PeriodTool;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.Logger;
 
@@ -17,33 +18,29 @@ public class PeriodClientDataPool {
 
     private static final Logger LOGGER = Logger.getLogger(PeriodClientDataPool.class);
 
-    public static void add(String key, Object value) {
-        add(key, value, PeriodEnv.getCurrentEnv());
+    public static void addLocalCache(PeriodEntity entity, String env) {
+        pool.put(env + "_" + entity.getKey(), entity);
     }
 
-    public static void add(String key, Object value, String env) {
+    public static void addLocalCache(String key, Object value, String env) {
         pool.put(env + "_" + key, value);
-    }
-
-    public static void remove(String key) {
-        remove(key, PeriodEnv.getCurrentEnv());
     }
 
     public static void remove(String key, String env) {
         pool.remove(env + "_" + key);
     }
 
-    public static Object get(String key) {
+    public static PeriodEntity get(String key) {
         return get(key, PeriodEnv.getCurrentEnv());
     }
 
-    public static Object get(String key, String env) {
+    public static PeriodEntity get(String key, String env) {
 
         String fullNodePath = PeriodTool.getFullNodePath(key);
 
         String cacheKey = env + "_" + key;
 
-        Object cacheData = pool.get(cacheKey);
+        PeriodEntity cacheData = (PeriodEntity) pool.get(cacheKey);
 
         if (cacheData == null) {
             byte[] pathDataFromZk = null;
@@ -55,24 +52,24 @@ public class PeriodClientDataPool {
                 return null;
             }
 
-            cacheData = new String(pathDataFromZk);
-            add(key, cacheData, env);
+            cacheData = PeriodTool.json2PeriodEntity(new String(pathDataFromZk));
+            addLocalCache(cacheData, env);
         }
 
         return cacheData;
     }
 
-    public static Map<String, String> getChildren(String fatherKey) {
+    public static Map<String, PeriodEntity> getChildren(String fatherKey) {
         return getChildren(fatherKey, PeriodEnv.getCurrentEnv());
     }
 
-    public static Map<String, String> getChildren(String fatherKey, String env) {
+    public static Map<String, PeriodEntity> getChildren(String fatherKey, String env) {
 
-        Map<String, String> childrenData = new HashMap<String, String>();
+        Map<String, PeriodEntity> childrenData = new HashMap<String, PeriodEntity>();
 
-        String cacheKey = env + "_" + fatherKey;
+        String cacheKey = env + "_" + PeriodTool.FATHER + "_" + fatherKey;
 
-        Map<String, String> cacheData = (Map<String, String>) (pool.get(cacheKey));
+        Map<String, PeriodEntity> cacheData = (Map<String, PeriodEntity>) (pool.get(cacheKey));
 
         if (cacheData == null) {
 
@@ -82,7 +79,7 @@ public class PeriodClientDataPool {
             try {
                 client.getData().watched().forPath(fatherPath);
 
-                List<String> childrenPaths = client.getChildren().forPath(fatherPath);
+                List<String> childrenPaths = client.getChildren().watched().forPath(fatherPath);
 
                 if (childrenPaths == null || childrenPaths.size() == 0) return null;
 
@@ -90,10 +87,10 @@ public class PeriodClientDataPool {
                     String childFullPath = fatherPath + "/" + childPath;
                     String childFullKey = fatherKey + "." + childPath;
                     byte[] childData = client.getData().forPath(childFullPath);
-                    childrenData.put(childFullKey, new String(childData));
+                    childrenData.put(childFullKey, PeriodTool.json2PeriodEntity(new String(childData)));
                 }
 
-                add(fatherKey, childrenData, env);
+                addLocalCache(PeriodTool.FATHER + "_" + fatherKey, childrenData, env);
 
                 return childrenData;
 

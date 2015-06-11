@@ -1,7 +1,8 @@
-package com.dianping.period.server;
+package com.period.server;
 
-import com.dianping.period.common.PeriodConnection;
-import com.dianping.period.common.PeriodTool;
+import com.period.common.PeriodConnection;
+import com.period.common.PeriodEntity;
+import com.period.common.PeriodTool;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 
@@ -12,9 +13,10 @@ public class PeriodServerUtil {
 
     private static final Logger LOGGER = Logger.getLogger(PeriodServerUtil.class);
 
-    public static boolean updateNode(String key, String newData, String env) {
+    public static boolean updateNode(String key, String newData, String newDesc, String env) {
 
-        byte newDataBytes[] = (newData != null) ? newData.getBytes() : null;
+        PeriodEntity entity = new PeriodEntity(key, newData, newDesc);
+        byte newDataBytes[] = PeriodTool.periodEntity2Json(entity).getBytes();
         int version = -1;
         String fullNodePath = PeriodTool.getFullNodePath(key);
 
@@ -43,26 +45,28 @@ public class PeriodServerUtil {
         return true;
     }
 
-    public static boolean createPersistentNode(String key, String data, String env) {
-        return createNode(key, data, CreateMode.PERSISTENT, env);
+    public static boolean createPersistentNode(String key, String data, String desc, String env) {
+        return createNode(key, data, CreateMode.PERSISTENT, desc, env);
     }
 
-    public static boolean createPersistentSequentialNode(String key, String data, String env) {
-        return createNode(key, data, CreateMode.PERSISTENT_SEQUENTIAL, env);
+    public static boolean createPersistentSequentialNode(String key, String data, String desc, String env) {
+        return createNode(key, data, CreateMode.PERSISTENT_SEQUENTIAL, desc, env);
     }
 
-    public static boolean createEphemeralNode(String key, String data, String env) {
-        return createNode(key, data, CreateMode.EPHEMERAL, env);
+    public static boolean createEphemeralNode(String key, String data, String desc, String env) {
+        return createNode(key, data, CreateMode.EPHEMERAL, desc, env);
     }
 
-    public static boolean createEphemeralSequentialNode(String key, String data, String env) {
-        return createNode(key, data, CreateMode.EPHEMERAL_SEQUENTIAL, env);
+    public static boolean createEphemeralSequentialNode(String key, String data, String desc, String env) {
+        return createNode(key, data, CreateMode.EPHEMERAL_SEQUENTIAL, desc, env);
     }
 
-    private static boolean createNode(String key, String data, CreateMode mode, String env) {
+    private static boolean createNode(String key, String data, CreateMode mode, String desc, String env) {
 
-        byte dataBytes[] = (data != null) ? data.getBytes() : null;
         String fullNodePath = PeriodTool.getFullNodePath(key);
+
+        PeriodEntity entity = new PeriodEntity(key, data, desc);
+        byte dataBytes[] = PeriodTool.periodEntity2Json(entity).getBytes();
 
         try {
             PeriodConnection.getClient(env).create().creatingParentsIfNeeded().withMode(mode).forPath(

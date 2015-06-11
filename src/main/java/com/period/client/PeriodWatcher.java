@@ -1,7 +1,8 @@
-package com.dianping.period.client;
+package com.period.client;
 
-import com.dianping.period.common.PeriodConnection;
-import com.dianping.period.common.PeriodTool;
+import com.period.common.PeriodConnection;
+import com.period.common.PeriodEntity;
+import com.period.common.PeriodTool;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.CuratorEventType;
@@ -44,7 +45,7 @@ public class PeriodWatcher implements CuratorListener {
             if (eventType == EventType.NodeDataChanged) {
                 byte[] newValue = client.getData().watched().forPath(
                         path);
-                PeriodClientDataPool.add(key, new String(newValue), env);
+                PeriodClientDataPool.addLocalCache(PeriodTool.json2PeriodEntity(new String(newValue)), env);
 
             }
 
@@ -55,7 +56,7 @@ public class PeriodWatcher implements CuratorListener {
             if (eventType == EventType.NodeChildrenChanged) {
 
                 List<String> children = client.getChildren().watched().forPath(path);
-                Map<String, String> childrenData = new HashMap<String, String>();
+                Map<String, PeriodEntity> childrenData = new HashMap<String, PeriodEntity>();
 
                 for (String child : children) {
                     String childPath = path + "/" + child;
@@ -64,12 +65,13 @@ public class PeriodWatcher implements CuratorListener {
 
                     System.out.println("childFullKey:" + childFullKey + ",childPath:" + childPath);
 
-                    childrenData.put(childFullKey, new String(childData));
+                    childrenData.put(childFullKey, PeriodTool.json2PeriodEntity(new String(childData)));
                 }
 
                 System.out.println("fatherKey:" + PeriodTool.convertPath2Key(path));
 
-                PeriodClientDataPool.add(PeriodTool.convertPath2Key(path), childrenData, env);
+                PeriodClientDataPool.addLocalCache(PeriodTool.FATHER + "_" + PeriodTool.convertPath2Key(path),
+                                                   childrenData, env);
             }
 
         } catch (Exception e) {

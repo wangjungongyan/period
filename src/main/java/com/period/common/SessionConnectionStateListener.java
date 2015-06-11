@@ -1,4 +1,4 @@
-package com.dianping.period.common;
+package com.period.common;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.state.ConnectionState;
