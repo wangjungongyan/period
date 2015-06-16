@@ -1,11 +1,17 @@
 package com.period.common;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Charsets;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -17,18 +23,7 @@ public class PeriodTool {
 
     public static String FATHER = "father";
 
-    public static String convertKey2Path(String originKey) {
-        String[] splitedKeys = originKey.split("\\.");
-
-        StringBuffer finalKey = new StringBuffer();
-
-        for (String splitedKey : splitedKeys) {
-            finalKey.append("/");
-            finalKey.append(splitedKey);
-        }
-
-        return ROOT_PATH + finalKey.toString();
-    }
+    private static final Logger LOGGER = Logger.getLogger(PeriodTool.class);
 
     public static String convertPath2Key(String path) {
         if (path.startsWith(ROOT_PATH)) {
@@ -90,6 +85,58 @@ public class PeriodTool {
         }
 
         return JSON.toJSONString(entity);
+    }
+
+    public static String getFatherKey(String key, String env) {
+        return env + "_" + PeriodTool.FATHER + "_" + key;
+    }
+
+    public static Map<String, PeriodEntity> getChildrebData(String fatherKey, String env) {
+
+        String fatherPath = PeriodTool.getFullNodePath(fatherKey);
+
+        CuratorFramework client = PeriodConnection.getClient(env);
+
+        try {
+            List<String> childrenPaths = client.getChildren().watched().forPath(fatherPath);
+
+            if (childrenPaths == null || childrenPaths.size() == 0) return null;
+
+            Map<String, PeriodEntity> childrenData = new HashMap<String, PeriodEntity>();
+
+            for (String childPath : childrenPaths) {
+                String childFullPath = fatherPath + "/" + childPath;
+                String childFullKey = fatherKey + "." + childPath;
+                byte[] childData = client.getData().watched().forPath(childFullPath);
+
+                LOGGER.info("childFullKey:" + childFullKey + ",childPath:" + childPath + ",value:" + new String(
+                        childData, Charsets.UTF_8));
+
+                childrenData.put(childFullKey, PeriodTool.convertJson2Entity(new String(childData, Charsets.UTF_8)));
+            }
+
+            return childrenData;
+
+        } catch (Exception e) {
+            LOGGER.error("Get data of father path '" + fatherKey + "' fail.", e);
+            return null;
+        }
+
+    }
+
+    public static PeriodEntity getData(String key, String env) {
+
+        String fullNodePath = PeriodTool.getFullNodePath(key);
+
+        try {
+            byte[] pathDataFromZk = PeriodConnection.getClient(env).getData().watched().forPath(
+                    fullNodePath);
+
+            return PeriodTool.convertJson2Entity(new String(pathDataFromZk, Charsets.UTF_8));
+        } catch (Exception e) {
+            LOGGER.error("Get data of path '" + fullNodePath + "' fail.", e);
+            return null;
+        }
     }
 
 }

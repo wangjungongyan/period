@@ -1,7 +1,5 @@
 package com.period.client;
 
-import com.google.common.base.Charsets;
-import com.period.common.PeriodConnection;
 import com.period.common.PeriodEntity;
 import com.period.common.PeriodTool;
 import org.apache.curator.framework.CuratorFramework;
@@ -12,8 +10,6 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PeriodWatcher implements CuratorListener {
@@ -38,18 +34,16 @@ public class PeriodWatcher implements CuratorListener {
             }
 
             String key = PeriodTool.convertPath2Key(path);
-            CuratorFramework client = PeriodConnection.getClient(env);
 
             if (eventType == EventType.NodeDataChanged) {
-                byte[] newValue = client.getData().watched().forPath(
-                        path);
+
+                PeriodEntity newEntity = PeriodTool.getData(key, env);
 
                 LOGGER.info(
-                        "eventType:" + eventType + ",path:" + path + ",key:" + key + ",value:" + new String(newValue,
-                                                                                                            Charsets.UTF_8)
+                        "eventType:" + eventType + ",path:" + path + ",key:" + key + ",value:"
+                        + PeriodTool.convertEntity2Json(newEntity)
                 );
 
-                PeriodEntity newEntity = PeriodTool.convertJson2Entity(new String(newValue, Charsets.UTF_8));
                 replaceFather(path, newEntity);
                 PeriodClientDataPool.addLocalCache(newEntity, env);
 
@@ -64,26 +58,7 @@ public class PeriodWatcher implements CuratorListener {
 
             if (eventType == EventType.NodeChildrenChanged) {
 
-                List<String> children = client.getChildren().watched().forPath(path);
-
-                if (children == null || children.size() == 0) {
-                    PeriodClientDataPool.addLocalCache(PeriodTool.FATHER + "_" + PeriodTool.convertPath2Key(path),
-                                                       null, env);
-                }
-
-                Map<String, PeriodEntity> childrenData = new HashMap<String, PeriodEntity>();
-
-                for (String child : children) {
-                    String childPath = path + "/" + child;
-                    String childFullKey = PeriodTool.convertPath2Key(childPath);
-                    byte[] childData = client.getData().watched().forPath(childPath);
-
-                    LOGGER.info("childFullKey:" + childFullKey + ",childPath:" + childPath + ",value:" + new String(
-                            childData, Charsets.UTF_8));
-
-                    childrenData.put(childFullKey,
-                                     PeriodTool.convertJson2Entity(new String(childData, Charsets.UTF_8)));
-                }
+                Map<String, PeriodEntity> childrenData = PeriodTool.getChildrebData(path, env);
 
                 PeriodClientDataPool.addLocalCache(PeriodTool.FATHER + "_" + PeriodTool.convertPath2Key(path),
                                                    childrenData, env);
@@ -107,17 +82,14 @@ public class PeriodWatcher implements CuratorListener {
     private void replaceFather(String path, PeriodEntity newEntity) {
 
         String key = PeriodTool.convertPath2Key(path);
-        String fatherKey = getFatherKey(key);
+
+        String fatherKey = PeriodTool.getFatherKey(key.split("\\.")[0], env);
 
         Map<String, PeriodEntity> children = (Map<String, PeriodEntity>) PeriodClientDataPool.getLocalCache(fatherKey);
 
         LOGGER.info("replaceFather fatherKey:" + fatherKey + ",key:" + key);
 
         children.put(key, newEntity);
-    }
-
-    private String getFatherKey(String key) {
-        return env + "_" + PeriodTool.FATHER + "_" + key.split("\\.")[0];
     }
 
 }
