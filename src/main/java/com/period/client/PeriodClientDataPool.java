@@ -1,5 +1,6 @@
 package com.period.client;
 
+import com.google.common.base.Charsets;
 import com.period.common.PeriodConnection;
 import com.period.common.PeriodEntity;
 import com.period.common.PeriodEnv;
@@ -18,6 +19,10 @@ public class PeriodClientDataPool {
 
     private static final Logger LOGGER = Logger.getLogger(PeriodClientDataPool.class);
 
+    public static Object getLocalCache(String key){
+        return pool.get(key);
+    }
+
     public static void addLocalCache(PeriodEntity entity, String env) {
         pool.put(env + "_" + entity.getKey(), entity);
     }
@@ -26,7 +31,7 @@ public class PeriodClientDataPool {
         pool.put(env + "_" + key, value);
     }
 
-    public static void remove(String key, String env) {
+    public static void removeLocalCache(String key, String env) {
         pool.remove(env + "_" + key);
     }
 
@@ -47,12 +52,12 @@ public class PeriodClientDataPool {
             try {
                 pathDataFromZk = PeriodConnection.getClient(env).getData().watched().forPath(
                         fullNodePath);
+                cacheData = PeriodTool.convertJson2Entity(new String(pathDataFromZk, Charsets.UTF_8));
             } catch (Exception e) {
                 LOGGER.error("Get data of path '" + fullNodePath + "' fail.", e);
                 return null;
             }
 
-            cacheData = PeriodTool.json2PeriodEntity(new String(pathDataFromZk));
             addLocalCache(cacheData, env);
         }
 
@@ -77,7 +82,6 @@ public class PeriodClientDataPool {
             CuratorFramework client = PeriodConnection.getClient(env);
 
             try {
-                client.getData().watched().forPath(fatherPath);
 
                 List<String> childrenPaths = client.getChildren().watched().forPath(fatherPath);
 
@@ -86,8 +90,8 @@ public class PeriodClientDataPool {
                 for (String childPath : childrenPaths) {
                     String childFullPath = fatherPath + "/" + childPath;
                     String childFullKey = fatherKey + "." + childPath;
-                    byte[] childData = client.getData().forPath(childFullPath);
-                    childrenData.put(childFullKey, PeriodTool.json2PeriodEntity(new String(childData)));
+                    byte[] childData = client.getData().watched().forPath(childFullPath);
+                    childrenData.put(childFullKey, PeriodTool.convertJson2Entity(new String(childData, Charsets.UTF_8)));
                 }
 
                 addLocalCache(PeriodTool.FATHER + "_" + fatherKey, childrenData, env);

@@ -40,11 +40,6 @@ public class PeriodTool {
         return subPath.replaceAll("/", ".");
     }
 
-    public static void main(String[] dd) {
-        String path = "ly-service/child1";
-        System.out.print(convertPath2Key(path));
-    }
-
     public static Properties getProperties(String path) {
         Properties prop = new Properties();
 
@@ -79,7 +74,7 @@ public class PeriodTool {
         return fullNodePath;
     }
 
-    public static PeriodEntity json2PeriodEntity(String jsonBody) {
+    public static PeriodEntity convertJson2Entity(String jsonBody) {
 
         if (jsonBody == null || "".equals(jsonBody)) {
             return null;
@@ -88,7 +83,7 @@ public class PeriodTool {
         return JSON.parseObject(jsonBody, PeriodEntity.class);
     }
 
-    public static String periodEntity2Json(PeriodEntity entity) {
+    public static String convertEntity2Json(PeriodEntity entity) {
 
         if (entity == null) {
             return null;

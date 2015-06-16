@@ -11,6 +11,10 @@ public class PeriodEntity {
 
     private String desc;
 
+    public PeriodEntity() {
+
+    }
+
     public PeriodEntity(String key, String value, String desc) {
         this.key = key;
         this.value = value;

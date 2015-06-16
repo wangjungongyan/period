@@ -1,5 +1,6 @@
 package com.period.server;
 
+import com.google.common.base.Charsets;
 import com.period.common.PeriodConnection;
 import com.period.common.PeriodEntity;
 import com.period.common.PeriodTool;
@@ -16,7 +17,7 @@ public class PeriodServerUtil {
     public static boolean updateNode(String key, String newData, String newDesc, String env) {
 
         PeriodEntity entity = new PeriodEntity(key, newData, newDesc);
-        byte newDataBytes[] = PeriodTool.periodEntity2Json(entity).getBytes();
+        byte newDataBytes[] = PeriodTool.convertEntity2Json(entity).getBytes(Charsets.UTF_8);
         int version = -1;
         String fullNodePath = PeriodTool.getFullNodePath(key);
 
@@ -66,7 +67,7 @@ public class PeriodServerUtil {
         String fullNodePath = PeriodTool.getFullNodePath(key);
 
         PeriodEntity entity = new PeriodEntity(key, data, desc);
-        byte dataBytes[] = PeriodTool.periodEntity2Json(entity).getBytes();
+        byte dataBytes[] = PeriodTool.convertEntity2Json(entity).getBytes(Charsets.UTF_8);
 
         try {
             PeriodConnection.getClient(env).create().creatingParentsIfNeeded().withMode(mode).forPath(
