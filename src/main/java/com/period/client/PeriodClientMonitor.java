@@ -19,12 +19,13 @@ public class PeriodClientMonitor {
 
     private static final Logger LOGGER = Logger.getLogger(PeriodClientMonitor.class);
 
-    private static boolean isStarted = false;
+    private static volatile boolean isStarted = false;
 
     public static void startClientDaemon() {
         if (isStarted) return;
 
         synchronized (PeriodClientMonitor.class) {
+            if (isStarted) return;
             daemonInstance.start();
             isStarted = true;
         }
