@@ -59,7 +59,7 @@ public class PeriodClientMonitor {
 
                         if (isFatherKey) {
                             String fatherKey = getFatherKeyExcludeEnv(env, key);
-                            Map<String, PeriodEntity> childrenData = PeriodTool.getChildrebData(fatherKey, env);
+                            Map<String, PeriodEntity> childrenData = PeriodTool.getChildrenData(fatherKey, env);
                             PeriodClientDataPool.addOrCoverLocalCache(PeriodTool.FATHER + "_" + fatherKey, childrenData,
                                                                       env);
                             LOGGER.info("Monitor key '" + key

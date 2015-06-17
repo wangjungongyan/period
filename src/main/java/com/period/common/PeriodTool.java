@@ -92,7 +92,7 @@ public class PeriodTool {
         return env + "_" + PeriodTool.FATHER + "_" + key;
     }
 
-    public static Map<String, PeriodEntity> getChildrebData(String fatherKey, String env) {
+    public static Map<String, PeriodEntity> getChildrenData(String fatherKey, String env) {
 
         String fatherPath = PeriodTool.getFullNodePath(fatherKey);
 

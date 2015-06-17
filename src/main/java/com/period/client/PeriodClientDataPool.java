@@ -68,7 +68,7 @@ public class PeriodClientDataPool {
 
             try {
 
-                cacheData = PeriodTool.getChildrebData(fatherKey, env);
+                cacheData = PeriodTool.getChildrenData(fatherKey, env);
 
                 addOrCoverLocalCache(PeriodTool.FATHER + "_" + fatherKey, cacheData, env);
 

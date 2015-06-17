@@ -58,7 +58,7 @@ public class PeriodWatcher implements CuratorListener {
 
             if (eventType == EventType.NodeChildrenChanged) {
 
-                Map<String, PeriodEntity> childrenData = PeriodTool.getChildrebData(path, env);
+                Map<String, PeriodEntity> childrenData = PeriodTool.getChildrenData(getPathExculdeRoot(path), env);
 
                 PeriodClientDataPool.addOrCoverLocalCache(PeriodTool.FATHER + "_" + PeriodTool.convertPath2Key(path),
                                                           childrenData, env);
@@ -92,6 +92,11 @@ public class PeriodWatcher implements CuratorListener {
         LOGGER.info("replaceFather fatherKey:" + fatherKey + ",key:" + key);
 
         children.put(key, newEntity);
+    }
+
+    private String getPathExculdeRoot(String path) {
+        int index = PeriodTool.ROOT_PATH.length() + 1;
+        return path.substring(index);
     }
 
 }

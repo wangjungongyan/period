@@ -6,6 +6,7 @@ import com.period.common.PeriodEntity;
 import com.period.common.PeriodTool;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 
 /**
  * Created by vali on 15-5-14.
@@ -70,6 +71,15 @@ public class PeriodServerUtil {
         byte dataBytes[] = PeriodTool.convertEntity2Json(entity).getBytes(Charsets.UTF_8);
 
         try {
+
+            Stat stat = PeriodConnection.getClient(env).checkExists().forPath(fullNodePath);
+
+            boolean isExist = (stat == null) ? false : true;
+
+            if (isExist) {
+                return updateNode(key, data, desc, env);
+            }
+
             PeriodConnection.getClient(env).create().creatingParentsIfNeeded().withMode(mode).forPath(
                     fullNodePath,
                     dataBytes);
