@@ -18,16 +18,22 @@ public class PeriodClientDataPool {
         return pool.get(key);
     }
 
-    public static void addLocalCache(PeriodEntity entity, String env) {
+    public static void addOrCoverLocalCache(PeriodEntity entity, String env) {
+        if (entity == null) return;
         pool.put(env + "_" + entity.getKey(), entity);
     }
 
-    public static void addLocalCache(String key, Object value, String env) {
+    public static void addOrCoverLocalCache(String key, Object value, String env) {
+        if (value == null) return;
         pool.put(env + "_" + key, value);
     }
 
     public static void removeLocalCache(String key, String env) {
         pool.remove(env + "_" + key);
+    }
+
+    public static ConcurrentHashMap getPool() {
+        return pool;
     }
 
     public static PeriodEntity get(String key) {
@@ -42,7 +48,7 @@ public class PeriodClientDataPool {
 
         if (cacheData == null) {
             cacheData = PeriodTool.getData(key, env);
-            addLocalCache(cacheData, env);
+            addOrCoverLocalCache(cacheData, env);
         }
 
         return cacheData;
@@ -64,7 +70,7 @@ public class PeriodClientDataPool {
 
                 cacheData = PeriodTool.getChildrebData(fatherKey, env);
 
-                addLocalCache(PeriodTool.FATHER + "_" + fatherKey, cacheData, env);
+                addOrCoverLocalCache(PeriodTool.FATHER + "_" + fatherKey, cacheData, env);
 
             } catch (Exception e) {
                 LOGGER.error("Get data of father path '" + fatherKey + "' fail.", e);

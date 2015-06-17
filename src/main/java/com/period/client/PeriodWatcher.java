@@ -45,7 +45,7 @@ public class PeriodWatcher implements CuratorListener {
                 );
 
                 replaceFather(path, newEntity);
-                PeriodClientDataPool.addLocalCache(newEntity, env);
+                PeriodClientDataPool.addOrCoverLocalCache(newEntity, env);
 
             }
 
@@ -60,8 +60,8 @@ public class PeriodWatcher implements CuratorListener {
 
                 Map<String, PeriodEntity> childrenData = PeriodTool.getChildrebData(path, env);
 
-                PeriodClientDataPool.addLocalCache(PeriodTool.FATHER + "_" + PeriodTool.convertPath2Key(path),
-                                                   childrenData, env);
+                PeriodClientDataPool.addOrCoverLocalCache(PeriodTool.FATHER + "_" + PeriodTool.convertPath2Key(path),
+                                                          childrenData, env);
             }
 
         } catch (Exception e) {
@@ -80,6 +80,8 @@ public class PeriodWatcher implements CuratorListener {
     }
 
     private void replaceFather(String path, PeriodEntity newEntity) {
+
+        if (newEntity == null) return;
 
         String key = PeriodTool.convertPath2Key(path);
 
