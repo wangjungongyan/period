@@ -2,6 +2,7 @@ package com.period.common;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Charsets;
+import com.period.client.PeriodClientMonitor;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.Logger;
 
@@ -120,8 +121,9 @@ public class PeriodTool {
         } catch (Exception e) {
             LOGGER.error("Get data of father path '" + fatherKey + "' fail.", e);
             return null;
+        } finally {
+            PeriodClientMonitor.startClientDaemon();
         }
-
     }
 
     public static PeriodEntity getData(String key, String env) {
@@ -136,6 +138,8 @@ public class PeriodTool {
         } catch (Exception e) {
             LOGGER.error("Get data of path '" + fullNodePath + "' fail.", e);
             return null;
+        } finally {
+            PeriodClientMonitor.startClientDaemon();
         }
     }
 

@@ -19,8 +19,15 @@ public class PeriodClientMonitor {
 
     private static final Logger LOGGER = Logger.getLogger(PeriodClientMonitor.class);
 
+    private static boolean isStarted = false;
+
     public static void startClientDaemon() {
-        daemonInstance.start();
+        if (isStarted) return;
+
+        synchronized (PeriodClientMonitor.class) {
+            daemonInstance.start();
+            isStarted = true;
+        }
     }
 
     private static Thread getDaemonInstance() {
