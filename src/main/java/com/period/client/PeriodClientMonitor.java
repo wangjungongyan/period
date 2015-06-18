@@ -51,29 +51,7 @@ public class PeriodClientMonitor {
                         continue;
                     }
 
-                    Iterator it = keys.iterator();
-                    while (it.hasNext()) {
-
-                        String key = (String) it.next();
-                        String env = getEnv(key);
-                        boolean isFatherKey = isFatherKey(env, key);
-
-                        if (isFatherKey) {
-                            String fatherKey = getFatherKeyExcludeEnv(env, key);
-                            Map<String, PeriodEntity> childrenData = PeriodTool.getChildrenData(fatherKey, env);
-                            PeriodClientDataPool.addOrCoverLocalCache(PeriodTool.FATHER + "_" + fatherKey, childrenData,
-                                                                      env);
-                            LOGGER.info("Monitor key '" + key
-                                        + "',and the new value is "
-                                        + JSON.toJSONString(
-                                    childrenData));
-                        } else {
-                            PeriodEntity data = PeriodTool.getData(getKeyExcludeEnv(env, key), env);
-                            PeriodClientDataPool.addOrCoverLocalCache(data, env);
-                            LOGGER.info("Monitor key '" + key + "',and the new value is " + JSON.toJSONString(data));
-                        }
-                    }
-
+                    cycleUpdateLocalCache(keys);
                     LOGGER.info("End monitor. Monitored keys are : " + JSON.toJSONString(keys));
                     sleepOneMinute();
                 }
@@ -85,7 +63,36 @@ public class PeriodClientMonitor {
 
     }
 
+    private static void cycleUpdateLocalCache(Set keys) {
+
+        Iterator it = keys.iterator();
+        while (it.hasNext()) {
+
+            String key = (String) it.next();
+            String env = getEnv(key);
+            boolean isFatherKey = isFatherKey(env, key);
+
+            if (isFatherKey) {
+                String fatherKey = getFatherKeyExcludeEnv(env, key);
+                Map<String, PeriodEntity> childrenData = PeriodTool.getChildrenData(fatherKey, env);
+                PeriodClientDataPool.addOrCoverLocalCache(PeriodTool.FATHER + "_" + fatherKey, childrenData,
+                                                          env);
+                LOGGER.info("Monitor key '" + key
+                            + "',and the new value is "
+                            + JSON.toJSONString(
+                        childrenData));
+                continue;
+            }
+
+            PeriodEntity data = PeriodTool.getData(getKeyExcludeEnv(env, key), env);
+            PeriodClientDataPool.addOrCoverLocalCache(data, env);
+            LOGGER.info("Monitor key '" + key + "',and the new value is " + JSON.toJSONString(data));
+        }
+
+    }
+
     private static void sleepOneMinute() {
+
         try {
             Thread.sleep(60000);
         } catch (InterruptedException e) {

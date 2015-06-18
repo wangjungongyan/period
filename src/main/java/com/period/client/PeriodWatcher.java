@@ -33,41 +33,55 @@ public class PeriodWatcher implements CuratorListener {
                 return;
             }
 
-            String key = PeriodTool.convertPath2Key(path);
-
             if (eventType == EventType.NodeDataChanged) {
-
-                PeriodEntity newEntity = PeriodTool.getData(key, env);
-
-                LOGGER.info(
-                        "eventType:" + eventType + ",path:" + path + ",key:" + key + ",value:"
-                        + PeriodTool.convertEntity2Json(newEntity)
-                );
-
-                replaceFather(path, newEntity);
-                PeriodClientDataPool.addOrCoverLocalCache(newEntity, env);
-
+                updateLocalCacheWhenNodeDataChanged(path);
             }
 
             if (eventType == EventType.NodeDeleted) {
-                LOGGER.info(
-                        "eventType:" + eventType + ",path:" + path + ",key:" + key);
-
-                PeriodClientDataPool.removeLocalCache(key, env);
+                updateLocalCacheWhenNodeDeleted(path);
             }
 
             if (eventType == EventType.NodeChildrenChanged) {
-
-                Map<String, PeriodEntity> childrenData = PeriodTool.getChildrenData(getPathExculdeRoot(path), env);
-
-                PeriodClientDataPool.addOrCoverLocalCache(PeriodTool.FATHER + "_" + PeriodTool.convertPath2Key(path),
-                                                          childrenData, env);
+                updateLocalCacheWhenNodeChildrenChanged(path);
             }
 
         } catch (Exception e) {
             LOGGER.error("Path '" + path + "' trigger event '" + event.getType().name() + "' fail.", e);
         }
 
+    }
+
+    private void updateLocalCacheWhenNodeDataChanged(String path) {
+
+        String key = PeriodTool.convertPath2Key(path);
+
+        PeriodEntity newEntity = PeriodTool.getData(key, env);
+
+        LOGGER.info(
+                "eventType: NodeDataChanged ,path:" + path + ",key:" + key + ",value:"
+                + PeriodTool.convertEntity2Json(newEntity)
+        );
+
+        replaceFather(path, newEntity);
+        PeriodClientDataPool.addOrCoverLocalCache(newEntity, env);
+    }
+
+    private void updateLocalCacheWhenNodeChildrenChanged(String path) {
+
+        Map<String, PeriodEntity> childrenData = PeriodTool.getChildrenData(getPathExculdeRoot(path), env);
+
+        PeriodClientDataPool.addOrCoverLocalCache(PeriodTool.FATHER + "_" + PeriodTool.convertPath2Key(path),
+                                                  childrenData, env);
+    }
+
+    private void updateLocalCacheWhenNodeDeleted(String path) {
+
+        String key = PeriodTool.convertPath2Key(path);
+
+        LOGGER.info(
+                "eventType: NodeDeleted ,path:" + path + ",key:" + key);
+
+        PeriodClientDataPool.removeLocalCache(key, env);
     }
 
     @Override public void eventReceived(CuratorFramework curatorFramework, CuratorEvent curatorEvent) throws Exception {
