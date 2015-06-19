@@ -54,6 +54,7 @@ public class PeriodClientMonitor {
                     cycleUpdateLocalCache(keys);
                     LOGGER.info("End monitor. Monitored keys are : " + JSON.toJSONString(keys));
                     sleepOneMinute();
+                    
                 }
             }
         };
